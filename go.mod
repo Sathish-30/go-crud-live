@@ -1,6 +1,6 @@
 module github.com/sathish-30/go-crud-live
 
-go 1.19
+go 1.22.1
 
 require (
 	gorm.io/driver/postgres v1.5.7

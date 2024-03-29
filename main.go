@@ -39,15 +39,20 @@ func main() {
 		log.Fatal("Failed to connect to database")
 	}
 	log.Println("Database connected")
-	server.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	server.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]string{
 			"msg": "In Home route",
 		})
 	})
 	server.HandleFunc("GET /getBooks", getAllBooksHandler)
-	http.ListenAndServe(PORT, server)
+	server.HandleFunc("POST /addBook", addBookHandler)
+	http.ListenAndServe(PORT, respJsonMiddleware(server))
 }
 
-func getAllBooksHandler(w http.ResponseWriter, r *http.Request) {
-
+func respJsonMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("The endpoint of the request is %v and the http request method is %v", r.URL, r.Method)
+		w.Header().Set("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
+	})
 }
