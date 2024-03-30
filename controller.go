@@ -15,15 +15,24 @@ func getAllBooksHandler(w http.ResponseWriter, r *http.Request) {
 	if result := db.Find(&books); result.Error != nil {
 		log.Fatal("Error in retrieving data")
 	}
-	for _, book := range books {
-		log.Printf("BookId %v BookName %v AuthorName %v", book.BookId, book.BookName, book.AuthorName)
-	}
 	w.WriteHeader(http.StatusAccepted)
-	jsonData, err := json.Marshal(&response{Message: "Retrieved data"})
+	err := json.NewEncoder(w).Encode(&books)
 	if err != nil {
 		log.Fatal("Error in parsing data")
 	}
-	w.Write(jsonData)
+}
+
+func getBookHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	var res Book
+	if result := db.First(&res, "id = ?", id); result.Error != nil {
+		w.WriteHeader(http.StatusNoContent)
+		w.Write([]byte("Book not found"))
+	}
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(&res); err != nil {
+		w.WriteHeader(http.StatusNotAcceptable)
+	}
 }
 
 func addBookHandler(w http.ResponseWriter, r *http.Request) {
@@ -33,9 +42,8 @@ func addBookHandler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal("Failed to insert data to DB")
 	}
 	w.WriteHeader(http.StatusAccepted)
-	jsonData, err := json.Marshal(&response{Message: "Added user"})
+	err := json.NewEncoder(w).Encode(&response{Message: "Added user to database"})
 	if err != nil {
 		log.Fatal("Error in parsing data")
 	}
-	w.Write(jsonData)
 }
